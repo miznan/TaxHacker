@@ -123,6 +123,72 @@ curl -O https://raw.githubusercontent.com/vas3k/TaxHacker/main/docker-compose.ym
 docker compose up
 ```
 
+### 🏠 Personal Home Use (with Ollama)
+
+If you want to run TaxHacker privately on your home network using a local LLM (like Ollama), follow these steps:
+
+**Step 1 — Create a folder and `.env` file on your server:**
+
+```bash
+mkdir taxhacker && cd taxhacker
+```
+
+```env
+PORT=7331
+SELF_HOSTED_MODE=true
+DISABLE_SIGNUP=true
+
+UPLOAD_PATH="./data/uploads"
+DATABASE_URL="postgresql://taxhacker:password@db:5432/taxhacker"
+
+BETTER_AUTH_SECRET="some-long-random-string-here"
+```
+
+**Step 2 — Create a `docker-compose.yml`:**
+
+```yaml
+services:
+  app:
+    image: ghcr.io/miznan/taxhacker:latest
+    ports:
+      - "7331:7331"
+    env_file: .env
+    volumes:
+      - ./data:/app/data
+    depends_on:
+      - db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: taxhacker
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: taxhacker
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+```
+
+**Step 3 — Run it:**
+
+```bash
+docker compose up -d
+```
+
+Access at `http://<your-server-ip>:7331`
+
+**Step 4 — Configure Ollama in the app UI:**
+
+- Go to **Settings → AI/LLM**
+- Pick **Ollama / OpenAI Compatible**
+- Base URL: `http://<your-pc-ip>:11434/v1`
+- Model: your installed model (e.g. `llama3.2`)
+
+> **Note:** Make sure Ollama listens on your network, not just localhost. Set `OLLAMA_HOST=0.0.0.0` before starting Ollama on your PC.
+
 The Docker Compose setup includes:
 
 - TaxHacker application container
