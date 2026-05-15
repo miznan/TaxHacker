@@ -3,7 +3,7 @@ name: Build and Publish Latest Docker Image
 on:
   push:
     branches:
-      - main
+      - personal
 
 jobs:
   build-and-push:
